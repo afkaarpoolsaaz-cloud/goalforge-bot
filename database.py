@@ -40,6 +40,7 @@ def _init_tables(cursor, conn):
             main_goal TEXT,
             reminder_time TEXT,
             daily_minutes INTEGER DEFAULT 15,
+            language TEXT DEFAULT 'en',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
@@ -132,7 +133,7 @@ def get_memory(user_id, limit=15):
 # USER PROFILE
 # =========================
 def save_user_profile(user_id, name=None, coaching_style=None, main_goal=None,
-                      reminder_time=None, daily_minutes=None):
+                      reminder_time=None, daily_minutes=None, language=None):
     conn, cursor = get_conn()
     cursor.execute("SELECT user_id FROM user_profile WHERE user_id=?", (user_id,))
     exists = cursor.fetchone()
@@ -143,18 +144,26 @@ def save_user_profile(user_id, name=None, coaching_style=None, main_goal=None,
         if main_goal: cursor.execute("UPDATE user_profile SET main_goal=? WHERE user_id=?", (main_goal, user_id))
         if reminder_time: cursor.execute("UPDATE user_profile SET reminder_time=? WHERE user_id=?", (reminder_time, user_id))
         if daily_minutes: cursor.execute("UPDATE user_profile SET daily_minutes=? WHERE user_id=?", (daily_minutes, user_id))
+        if language: cursor.execute("UPDATE user_profile SET language=? WHERE user_id=?", (language, user_id))
     else:
         cursor.execute(
-            "INSERT INTO user_profile (user_id, name, coaching_style, main_goal, reminder_time, daily_minutes) VALUES (?, ?, ?, ?, ?, ?)",
-            (user_id, name, coaching_style or 'friendly', main_goal, reminder_time, daily_minutes or 15)
+            "INSERT INTO user_profile (user_id, name, coaching_style, main_goal, reminder_time, daily_minutes, language) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (user_id, name, coaching_style or 'friendly', main_goal, reminder_time, daily_minutes or 15, language or 'en')
         )
     conn.commit()
 
 
 def get_user_profile(user_id):
     _, cursor = get_conn()
-    cursor.execute("SELECT name, coaching_style, main_goal, created_at, reminder_time, daily_minutes FROM user_profile WHERE user_id=?", (user_id,))
+    cursor.execute("SELECT name, coaching_style, main_goal, created_at, reminder_time, daily_minutes, language FROM user_profile WHERE user_id=?", (user_id,))
     return cursor.fetchone()
+
+
+def get_user_language(user_id):
+    _, cursor = get_conn()
+    cursor.execute("SELECT language FROM user_profile WHERE user_id=?", (user_id,))
+    row = cursor.fetchone()
+    return row[0] if row else 'en'
 
 
 def get_all_reminders():
@@ -201,7 +210,6 @@ def update_goal_progress(user_id, goal_id, progress):
 def update_streak(user_id):
     conn, cursor = get_conn()
     today = date.today().isoformat()
-
     cursor.execute("SELECT current_streak, longest_streak, last_active_date, total_active_days FROM streaks WHERE user_id=?", (user_id,))
     row = cursor.fetchone()
 
@@ -262,12 +270,13 @@ def add_xp(user_id, amount, reason=""):
 
     if row:
         total_xp, old_level = row[0] + amount, row[1]
-        cursor.execute("UPDATE xp SET total_xp=?, level=? WHERE user_id=?", (total_xp, (total_xp // 100) + 1, user_id))
+        new_level = (total_xp // 100) + 1
+        cursor.execute("UPDATE xp SET total_xp=?, level=? WHERE user_id=?", (total_xp, new_level, user_id))
     else:
         total_xp, old_level = amount, 1
-        cursor.execute("INSERT INTO xp (user_id, total_xp, level) VALUES (?, ?, 1)", (user_id, total_xp))
+        new_level = (total_xp // 100) + 1
+        cursor.execute("INSERT INTO xp (user_id, total_xp, level) VALUES (?, ?, ?)", (user_id, total_xp, new_level))
 
-    new_level = (total_xp // 100) + 1
     cursor.execute("INSERT INTO xp_log (user_id, amount, reason) VALUES (?, ?, ?)", (user_id, amount, reason))
     conn.commit()
     return total_xp, new_level, new_level > old_level
@@ -287,27 +296,25 @@ def get_xp(user_id):
 # ACHIEVEMENTS
 # =========================
 ACHIEVEMENT_LIST = {
-    "first_step":       ("🌱 First Step",        "اولین پیام رو فرستادی"),
-    "first_goal":       ("🎯 Goal Setter",        "اولین هدفت رو ثبت کردی"),
-    "first_checkin":    ("✅ First Checkin",      "اولین چک‌این رو انجام دادی"),
-    "streak_3":         ("⚡ 3 Day Streak",       "۳ روز متوالی فعال بودی"),
-    "streak_7":         ("🔥 7 Day Streak",       "۷ روز متوالی فعال بودی"),
-    "streak_30":        ("🏆 30 Day Streak",      "۳۰ روز متوالی فعال بودی"),
-    "streak_90":        ("👑 90 Day Streak",      "۹۰ روز متوالی فعال بودی"),
-    "level_5":          ("💪 Level 5",            "به Level 5 رسیدی"),
-    "level_10":         ("🔥 Level 10",           "به Level 10 رسیدی"),
-    "comeback":         ("🦅 Comeback Hero",      "بعد از توقف برگشتی"),
+    "first_step":    ("🌱 First Step",     "Sent first message"),
+    "first_goal":    ("🎯 Goal Setter",    "Set first goal"),
+    "first_checkin": ("✅ First Checkin",  "First daily checkin"),
+    "streak_3":      ("⚡ 3 Day Streak",   "3 consecutive days active"),
+    "streak_7":      ("🔥 7 Day Streak",   "7 consecutive days active"),
+    "streak_30":     ("🏆 30 Day Streak",  "30 consecutive days active"),
+    "streak_90":     ("👑 90 Day Streak",  "90 consecutive days active"),
+    "level_5":       ("💪 Level 5",        "Reached Level 5"),
+    "level_10":      ("🔥 Level 10",       "Reached Level 10"),
+    "comeback":      ("🦅 Comeback Hero",  "Returned after inactivity"),
 }
 
 
 def check_and_grant_achievements(user_id):
-    """Check all conditions and grant new achievements. Returns list of new ones."""
     conn, cursor = get_conn()
-
     cursor.execute("SELECT achievement_key FROM achievements WHERE user_id=?", (user_id,))
     existing = {row[0] for row in cursor.fetchall()}
-
     new_achievements = []
+
     current, longest, total = get_streak(user_id)
     total_xp, level, _ = get_xp(user_id)
     checkins = get_checkins(user_id, limit=1)
@@ -388,7 +395,7 @@ def grant_premium(user_id, days=30, granted_by="system"):
 
 
 # =========================
-# BEHAVIOR
+# BEHAVIOR & LEARNING
 # =========================
 def save_behavior(user_id, pattern_type, value):
     conn, cursor = get_conn()
@@ -396,9 +403,6 @@ def save_behavior(user_id, pattern_type, value):
     conn.commit()
 
 
-# =========================
-# LEARNING
-# =========================
 def save_learning(user_id, input_text, ai_response):
     conn, cursor = get_conn()
     cursor.execute("INSERT INTO learning (user_id, input_text, ai_response) VALUES (?, ?, ?)", (user_id, input_text, ai_response))
