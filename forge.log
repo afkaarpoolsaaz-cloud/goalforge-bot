@@ -1,0 +1,131 @@
+Traceback (most recent call last):
+  File "C:\Users\WOLF\goalforge-bot\bot.py", line 86, in <module>
+    print("\U0001f525 GoalForge Bot Running...")
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f525' in position 0: character maps to <undefined>
+Traceback (most recent call last):
+  File "C:\Users\WOLF\goalforge-bot\bot.py", line 86, in <module>
+    print("\U0001f525 GoalForge Bot Running...")
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f525' in position 0: character maps to <undefined>
+Traceback (most recent call last):
+  File "C:\Users\WOLF\goalforge-bot\bot.py", line 86, in <module>
+    print("\U0001f525 GoalForge Bot Running...")
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f525' in position 0: character maps to <undefined>
+Traceback (most recent call last):
+  File "C:\Users\WOLF\goalforge-bot\bot.py", line 86, in <module>
+    print("\U0001f525 GoalForge Bot Running...")
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f525' in position 0: character maps to <undefined>
+Traceback (most recent call last):
+  File "C:\Users\WOLF\goalforge-bot\bot.py", line 86, in <module>
+    print("\U0001f525 GoalForge Bot Running...")
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f525' in position 0: character maps to <undefined>
+Traceback (most recent call last):
+  File "C:\Users\WOLF\goalforge-bot\bot.py", line 79, in <module>
+    app = Application.builder().token(TOKEN).build()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\site-packages\telegram\ext\_applicationbuilder.py", line 310, in build
+    bot: Bot = self._build_ext_bot()  # build a bot
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\site-packages\telegram\ext\_applicationbuilder.py", line 280, in _build_ext_bot
+    request=self._build_request(get_updates=False),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\site-packages\telegram\ext\_applicationbuilder.py", line 260, in _build_request
+    return HTTPXRequest(
+           ^^^^^^^^^^^^^
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\site-packages\telegram\request\_httpxrequest.py", line 189, in __init__
+    self._client = self._build_client()
+                   ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\site-packages\telegram\request\_httpxrequest.py", line 224, in _build_client
+    return httpx.AsyncClient(**self._client_kwargs)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\site-packages\httpx\_client.py", line 1402, in __init__
+    self._transport = self._init_transport(
+                      ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\site-packages\httpx\_client.py", line 1445, in _init_transport
+    return AsyncHTTPTransport(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\site-packages\httpx\_transports\default.py", line 297, in __init__
+    ssl_context = create_ssl_context(verify=verify, cert=cert, trust_env=trust_env)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\site-packages\httpx\_config.py", line 40, in create_ssl_context
+    ctx = ssl.create_default_context(cafile=certifi.where())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\ssl.py", line 707, in create_default_context
+    context.load_verify_locations(cafile, capath, cadata)
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "C:\Users\WOLF\goalforge-bot\bot.py", line 238, in <module>
+    print("\U0001f525 GoalForge Bot Running...")
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f525' in position 0: character maps to <undefined>
+Traceback (most recent call last):
+  File "C:\Users\WOLF\goalforge-bot\bot.py", line 238, in <module>
+    print("\U0001f525 GoalForge Bot Running...")
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f525' in position 0: character maps to <undefined>
+Traceback (most recent call last):
+  File "C:\Users\WOLF\goalforge-bot\bot.py", line 238, in <module>
+    print("\U0001f525 GoalForge Bot Running...")
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f525' in position 0: character maps to <undefined>
+Traceback (most recent call last):
+  File "C:\Users\WOLF\goalforge-bot\bot.py", line 238, in <module>
+    print("\U0001f525 GoalForge Bot Running...")
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f525' in position 0: character maps to <undefined>
+Traceback (most recent call last):
+  File "C:\Users\WOLF\goalforge-bot\bot.py", line 214, in <module>
+    app = Application.builder().token(TOKEN).build()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\site-packages\telegram\ext\_applicationbuilder.py", line 310, in build
+    bot: Bot = self._build_ext_bot()  # build a bot
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\site-packages\telegram\ext\_applicationbuilder.py", line 280, in _build_ext_bot
+    request=self._build_request(get_updates=False),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\site-packages\telegram\ext\_applicationbuilder.py", line 260, in _build_request
+    return HTTPXRequest(
+           ^^^^^^^^^^^^^
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\site-packages\telegram\request\_httpxrequest.py", line 189, in __init__
+    self._client = self._build_client()
+                   ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\site-packages\telegram\request\_httpxrequest.py", line 224, in _build_client
+    return httpx.AsyncClient(**self._client_kwargs)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\site-packages\httpx\_client.py", line 1402, in __init__
+    self._transport = self._init_transport(
+                      ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\site-packages\httpx\_client.py", line 1445, in _init_transport
+    return AsyncHTTPTransport(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\site-packages\httpx\_transports\default.py", line 297, in __init__
+    ssl_context = create_ssl_context(verify=verify, cert=cert, trust_env=trust_env)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\site-packages\httpx\_config.py", line 40, in create_ssl_context
+    ctx = ssl.create_default_context(cafile=certifi.where())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\WOLF\AppData\Local\Programs\Python\Python312\Lib\ssl.py", line 707, in create_default_context
+    context.load_verify_locations(cafile, capath, cadata)
+KeyboardInterrupt

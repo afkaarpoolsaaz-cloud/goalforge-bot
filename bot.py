@@ -9,7 +9,9 @@ from database import (
     save_memory, save_user_name, save_goal, get_goals, get_user_profile,
     save_user_profile, update_streak, get_streak, save_checkin, get_checkins,
     add_xp, get_xp, check_and_grant_achievements, get_achievements,
-    get_trust, update_trust, is_premium, get_user_language, ACHIEVEMENT_LIST
+    get_trust, update_trust, is_premium, get_user_language, ACHIEVEMENT_LIST,
+    mark_done, save_mood, get_last_mood, get_weekly_summary, get_monthly_summary,
+    get_active_goal, get_rank, get_hall_of_fame, get_founder_dashboard
 )
 from scheduler import send_reminders, send_weekly_report
 from lang import LANGUAGES, STYLE_BUTTONS, STYLE_MAP, t
@@ -25,6 +27,8 @@ WAITING_STYLE = 3
 WAITING_REMINDER_TIME = 4
 WAITING_REMINDER_MINUTES = 5
 WAITING_CHECKIN = 6
+WAITING_COMPLETE_GOAL = 7
+WAITING_MOOD = 8
 
 
 def get_level_title(level, lang="en"):
@@ -49,8 +53,12 @@ async def notify_achievements(update, new_achievements, lang):
 def main_menu_keyboard(lang):
     buttons = [
         [KeyboardButton("/goal"), KeyboardButton("/goals")],
-        [KeyboardButton("/checkin"), KeyboardButton("/streak")],
-        [KeyboardButton("/xp"), KeyboardButton("/achievements")],
+        [KeyboardButton("/complete"), KeyboardButton("/checkin")],
+        [KeyboardButton("/streak"), KeyboardButton("/xp")],
+        [KeyboardButton("/achievements"), KeyboardButton("/rank")],
+        [KeyboardButton("/weekly"), KeyboardButton("/monthly")],
+        [KeyboardButton("/briefing"), KeyboardButton("/dashboard")],
+        [KeyboardButton("/mood"), KeyboardButton("/halloffame")],
         [KeyboardButton("/profile"), KeyboardButton("/report")],
         [KeyboardButton("/reminder"), KeyboardButton("/style")],
         [KeyboardButton("/help")],
@@ -138,7 +146,176 @@ async def goals_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     msg = "🎯 Goals:\n\n"
     for i, (gid, text, status, progress, created) in enumerate(goals, 1):
-        msg += f"{i}. {text}\n   📊 {progress}%\n\n"
+        status_text = "✅ Done" if status == "done" else "🟡 Active"
+        msg += f"{i}. {text}\n   {status_text} | 📊 {progress}%\n\n"
+    await update.message.reply_text(msg)
+
+
+# =========================
+# /complete
+# =========================
+async def complete_goal_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    goals = [g for g in get_goals(user_id) if g[2] != "done"]
+    if not goals:
+        await update.message.reply_text("No active goals to complete. Use /goal to add one.")
+        return ConversationHandler.END
+    msg = "✅ Choose goal to complete:\n\n"
+    for i, (gid, text, status, progress, created) in enumerate(goals, 1):
+        msg += f"{i}. {text}\n"
+    await update.message.reply_text(msg)
+    context.user_data["active_goals"] = goals
+    return WAITING_COMPLETE_GOAL
+
+
+async def complete_goal_received(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    text = update.message.text.strip()
+    goals = context.user_data.get("active_goals", [])
+    try:
+        index = int(text) - 1
+        if index < 0 or index >= len(goals):
+            raise ValueError()
+    except ValueError:
+        await update.message.reply_text("❌ Enter a valid goal number.")
+        return WAITING_COMPLETE_GOAL
+    goal_id, goal_text, _, _, _ = goals[index]
+    mark_done(goal_id, user_id)
+    add_xp(user_id, 20, "goal_complete")
+    update_trust(user_id, +5)
+    new_achievements = check_and_grant_achievements(user_id)
+    await update.message.reply_text(f"🎉 Goal completed:\n{goal_text}\n\n⭐ +20 XP")
+    await notify_achievements(update, new_achievements, get_user_language(user_id))
+    return ConversationHandler.END
+
+
+# =========================
+# /mood
+# =========================
+async def mood_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lang = get_user_language(update.effective_user.id)
+    buttons = [[KeyboardButton("Excellent")], [KeyboardButton("Good")], [KeyboardButton("Neutral")], [KeyboardButton("Tired")], [KeyboardButton("Struggling")]]
+    await update.message.reply_text(
+        "🧠 How are you feeling today?",
+        reply_markup=ReplyKeyboardMarkup(buttons, one_time_keyboard=True, resize_keyboard=True)
+    )
+    return WAITING_MOOD
+
+
+async def mood_received(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    mood = update.message.text.strip()
+    save_mood(user_id, mood)
+    await update.message.reply_text(f"✅ Mood saved: {mood}", reply_markup=main_menu_keyboard(get_user_language(user_id)))
+    return ConversationHandler.END
+
+
+# =========================
+# /weekly
+# =========================
+async def weekly_review_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    profile = get_user_profile(user_id)
+    summary = get_weekly_summary(user_id)
+    active_goal = get_active_goal(user_id)
+    goal_text = active_goal[1] if active_goal else "No active goal"
+    msg = (
+        f"📅 Weekly Review:\n\n"
+        f"🎯 Active goal: {goal_text}\n"
+        f"🔥 Streak: {summary['current_streak']} days\n"
+        f"🏆 Best streak: {summary['longest_streak']} days\n"
+        f"✅ Checkins: {summary['weekly_checkins']}/7\n"
+        f"📊 Progress: {summary['progress']}%\n"
+        f"💪 Consistency: {summary['consistency_score']}%\n"
+    )
+    await update.message.reply_text(msg)
+
+
+# =========================
+# /monthly
+# =========================
+async def monthly_review_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    summary = get_monthly_summary(user_id)
+    active_goal = get_active_goal(user_id)
+    goal_text = active_goal[1] if active_goal else "No active goal"
+    msg = (
+        f"🗓 Monthly Review:\n\n"
+        f"🎯 Active goal: {goal_text}\n"
+        f"🔥 Streak: {summary['current_streak']} days\n"
+        f"🏆 Best streak: {summary['longest_streak']} days\n"
+        f"✅ Checkins: {summary['monthly_checkins']}/30\n"
+        f"📊 Progress: {summary['progress']}%\n"
+        f"💪 Consistency: {summary['consistency_score']}%\n"
+    )
+    await update.message.reply_text(msg)
+
+
+# =========================
+# /briefing
+# =========================
+async def briefing_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    active_goal = get_active_goal(user_id)
+    goal_text = active_goal[1] if active_goal else "No active goal"
+    last_mood = get_last_mood(user_id)
+    summary = get_weekly_summary(user_id)
+    msg = (
+        f"☀️ Smart Briefing:\n\n"
+        f"🎯 Today’s focus: {goal_text}\n"
+        f"🔥 Current streak: {summary['current_streak']} days\n"
+        f"📊 Weekly consistency: {summary['consistency_score']}%\n"
+        f"✅ Checkins this week: {summary['weekly_checkins']}/7\n"
+        f"💬 Last mood: {last_mood or 'Not set'}\n"
+        f"⚡ Quick task: Spend 10 minutes on your main goal today."
+    )
+    await update.message.reply_text(msg)
+
+
+# =========================
+# /dashboard
+# =========================
+async def dashboard_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    stats = get_founder_dashboard()
+    lang = get_user_language(user_id)
+    msg = (
+        f"📊 Founder Dashboard:\n\n"
+        f"👥 Total users: {stats['total_users']}\n"
+        f"🟢 Active last 7d: {stats['weekly_active']}\n"
+        f"🟡 Active last 30d: {stats['monthly_active']}\n"
+        f"🔥 Avg streak: {stats['average_streak']} days\n"
+        f"✅ Completed goals: {stats['completed_goals']}\n"
+        f"🌍 Languages: {', '.join([f'{lang}:{count}' for lang, count in stats['language_distribution']])}\n"
+        f"🏆 Top goals: {', '.join([f'{goal} ({count})' for goal, count in stats['top_goals']])}"
+    )
+    await update.message.reply_text(msg)
+
+
+# =========================
+# /rank
+# =========================
+async def rank_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    rank, total, score = get_rank(user_id)
+    await update.message.reply_text(
+        f"🏅 Your Rank: {rank}/{total}\n"
+        f"⭐ Score: {score}\n"
+        f"📈 Level: {get_xp(user_id)[1]}"
+    )
+
+
+# =========================
+# /halloffame
+# =========================
+async def halloffame_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    hall = get_hall_of_fame(5)
+    if not hall:
+        await update.message.reply_text("No hall of fame entries yet.")
+        return
+    msg = "🏆 Hall of Fame:\n\n"
+    for idx, (uid, name, score) in enumerate(hall, 1):
+        msg += f"{idx}. {name} — {score}\n"
     await update.message.reply_text(msg)
 
 
@@ -152,7 +329,7 @@ async def profile_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("No profile yet. Use /start")
         return
 
-    name, style, main_goal, created, reminder_time, daily_minutes, language = profile
+    _, name, style, main_goal, created, reminder_time, daily_minutes, language = profile
     total_xp, level, xp_to_next = get_xp(user_id)
     current, longest, total_days = get_streak(user_id)
     trust_score, _, _ = get_trust(user_id)
@@ -395,7 +572,7 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     lang = get_user_language(user_id)
     msg = t("commands_title", lang) + (t("commands_body", lang) if lang in ["fa", "en", "ru", "de", "tr"] else (
-        "\n🎯 /goal /goals\n📊 /checkin /streak /xp /achievements /trust /report\n⚙️ /profile /style /reminder /language /premium"
+        "\n🎯 /goal /goals /complete\n📊 /checkin /streak /xp /achievements /rank /weekly /monthly /briefing\n🧠 /mood /trust /halloffame /report /dashboard\n⚙️ /profile /style /reminder /language /premium"
     ))
     await update.message.reply_text(msg, reply_markup=main_menu_keyboard(lang), parse_mode="Markdown")
 
@@ -450,6 +627,11 @@ goal_conv = ConversationHandler(
     states={WAITING_GOAL: [MessageHandler(filters.TEXT & ~filters.COMMAND, goal_received)]},
     fallbacks=[CommandHandler("cancel", cancel)]
 )
+complete_conv = ConversationHandler(
+    entry_points=[CommandHandler("complete", complete_goal_cmd)],
+    states={WAITING_COMPLETE_GOAL: [MessageHandler(filters.TEXT & ~filters.COMMAND, complete_goal_received)]},
+    fallbacks=[CommandHandler("cancel", cancel)]
+)
 style_conv = ConversationHandler(
     entry_points=[CommandHandler("style", style_cmd)],
     states={WAITING_STYLE: [MessageHandler(filters.TEXT & ~filters.COMMAND, style_received)]},
@@ -468,6 +650,11 @@ checkin_conv = ConversationHandler(
     states={WAITING_CHECKIN: [MessageHandler(filters.TEXT & ~filters.COMMAND, checkin_received)]},
     fallbacks=[CommandHandler("cancel", cancel)]
 )
+mood_conv = ConversationHandler(
+    entry_points=[CommandHandler("mood", mood_cmd)],
+    states={WAITING_MOOD: [MessageHandler(filters.TEXT & ~filters.COMMAND, mood_received)]},
+    fallbacks=[CommandHandler("cancel", cancel)]
+)
 
 app.add_handler(start_conv)
 app.add_handler(language_conv)
@@ -475,11 +662,19 @@ app.add_handler(reminder_conv)
 app.add_handler(style_conv)
 app.add_handler(checkin_conv)
 app.add_handler(goal_conv)
+app.add_handler(complete_conv)
+app.add_handler(mood_conv)
 app.add_handler(CommandHandler("goals", goals_list))
 app.add_handler(CommandHandler("profile", profile_cmd))
 app.add_handler(CommandHandler("streak", streak_cmd))
 app.add_handler(CommandHandler("xp", xp_cmd))
 app.add_handler(CommandHandler("achievements", achievements_cmd))
+app.add_handler(CommandHandler("rank", rank_cmd))
+app.add_handler(CommandHandler("weekly", weekly_review_cmd))
+app.add_handler(CommandHandler("monthly", monthly_review_cmd))
+app.add_handler(CommandHandler("briefing", briefing_cmd))
+app.add_handler(CommandHandler("dashboard", dashboard_cmd))
+app.add_handler(CommandHandler("halloffame", halloffame_cmd))
 app.add_handler(CommandHandler("trust", trust_cmd))
 app.add_handler(CommandHandler("report", report_cmd))
 app.add_handler(CommandHandler("premium", premium_cmd))
@@ -487,5 +682,6 @@ app.add_handler(CommandHandler("status", status))
 app.add_handler(CommandHandler("help", help_cmd))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-print("🔥 GoalForge Bot Running...")
-app.run_polling()
+if __name__ == "__main__":
+    print("🔥 GoalForge Bot Running...")
+    app.run_polling()
